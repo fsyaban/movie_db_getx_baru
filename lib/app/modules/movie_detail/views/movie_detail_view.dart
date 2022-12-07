@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:movie_db_getx_baru/app/data/models/movie_video/movie_video_model.dart';
 
 import '../../../data/models/movie_detail/movie_detail_model.dart';
 import '../controllers/movie_detail_controller.dart';
@@ -11,36 +12,47 @@ class MovieDetailView extends GetView<MovieDetailController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body:FutureBuilder<MovieDetailResponse?>(
-      future: controller.getMovie(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return Column(
-            children: [
-              AppBar(
-                title: Text(snapshot.data?.title ?? ""),
-              ),
-              BackgroundImage(
-                backgroundUrl:
-                    "https://image.tmdb.org/t/p/w500${snapshot.data?.backdropPath}",
-                posterUrl:
-                    "https://image.tmdb.org/t/p/w500${snapshot.data?.posterPath}",
-              ),
-              getDescription(snapshot),
-              overviewTx(),
-              Container(
-                padding: EdgeInsets.all(15),
-                child: Text(snapshot.data?.overview ?? "",
-                    textAlign: TextAlign.justify,
-                    style:
-                        TextStyle(fontFamily: GoogleFonts.lato().fontFamily)),
-              )
-            ],
-          );
-        } else {
-          return const Center(child: CircularProgressIndicator());
-        }
-      },
+        body: ListView(
+      children: [
+        Column(
+          children: [
+            FutureBuilder<MovieDetailResponse?>(
+              future: controller.getMovie(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return Column(
+                    children: [
+                      AppBar(
+                        title: Text(snapshot.data?.title ?? ""),
+                      ),
+                      BackgroundImage(
+                        backgroundUrl:
+                            "https://image.tmdb.org/t/p/w500${snapshot.data?.backdropPath}",
+                        posterUrl:
+                            "https://image.tmdb.org/t/p/w500${snapshot.data?.posterPath}",
+                      ),
+                      getDescription(snapshot),
+                      overviewTx(),
+                      Container(
+                        padding: EdgeInsets.all(15),
+                        child: Text(snapshot.data?.overview ?? "",
+                            textAlign: TextAlign.justify,
+                            style: TextStyle(
+                                fontFamily: GoogleFonts.lato().fontFamily)),
+                      )
+                    ],
+                  );
+                } else {
+                  return const Center(child: CircularProgressIndicator());
+                }
+              },
+            ),
+            SizedBox(
+              height: 20,
+            )
+          ],
+        ),
+      ],
     ));
   }
 
@@ -86,7 +98,26 @@ class MovieDetailView extends GetView<MovieDetailController> {
             alignment: Alignment.topLeft,
             child: Row(
               children: [
-                Icon(Icons.date_range),
+                Icon(Icons.movie),
+                const SizedBox(
+                  width: 5,
+                ),
+                Text(
+                  snapshot.data?.genres?.map((e) => e.name).join(",") ?? "",
+                  style: TextStyle(
+                      fontSize: 14, fontFamily: GoogleFonts.lato().fontFamily),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 10),
+          Container(
+            alignment: Alignment.topLeft,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.date_range,
+                ),
                 const SizedBox(
                   width: 5,
                 ),
@@ -131,7 +162,7 @@ class MovieDetailView extends GetView<MovieDetailController> {
                 ),
               ],
             ),
-          ),
+          )
         ],
       ),
     );
@@ -159,7 +190,6 @@ class BackgroundImage extends StatelessWidget {
                     image: NetworkImage(backgroundUrl), fit: BoxFit.cover)),
             width: double.infinity,
             child: Container(
-              height: 160.0,
               width: 300.0,
               decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -175,6 +205,7 @@ class BackgroundImage extends StatelessWidget {
               borderRadius: BorderRadius.circular(15),
               child: Image.network(
                 posterUrl,
+                fit: BoxFit.cover,
                 width: 150,
                 height: 240,
               ),
@@ -185,4 +216,3 @@ class BackgroundImage extends StatelessWidget {
     );
   }
 }
-

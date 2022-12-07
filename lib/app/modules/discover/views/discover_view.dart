@@ -10,113 +10,124 @@ import '../controllers/discover_controller.dart';
 
 class DiscoverView extends GetView<DiscoverController> {
   const DiscoverView({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('DiscoverView'),
-          centerTitle: true,
-        ),
-        body: FutureBuilder<DiscoverMovieResponse?>(
-          future: controller.getDiscoverByGenre(),
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              return ListView.builder(
-                  shrinkWrap: true,
-                  padding: EdgeInsets.all(10),
-                  itemCount: snapshot.data?.results?.length,
-                  itemBuilder: (context, index) {
-                    var dataResult = snapshot.data?.results?[index];
-                    return InkWell(
-                      onTap: () {
-                        Get.toNamed(Routes.MOVIE_DETAIL,
-                            arguments: dataResult?.id);
-                      },
-                      child: Container(
-                          margin: EdgeInsets.only(top: 10),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+      appBar: AppBar(
+        title: const Text('DiscoverView'),
+        centerTitle: true,
+      ),
+      body: Obx(() => ListView.builder(
+              controller: controller.discoverScrollController,
+              shrinkWrap: true,
+              padding: EdgeInsets.all(10),
+              itemCount: controller.listDiscoverMovie.length,
+              itemBuilder: (context, index) {
+                var dataResult = controller.listDiscoverMovie[index];
+                return InkWell(
+                  onTap: () {
+                    Get.toNamed(Routes.MOVIE_DETAIL, arguments: dataResult?.id);
+                  },
+                  child: Container(
+                      margin: EdgeInsets.only(top: 10),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Stack(
+                            clipBehavior: Clip.none,
                             children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(15),
-                                child: Image.network(
-                                  "https://image.tmdb.org/t/p/w500${dataResult?.posterPath}",
-                                  width: 150,
-                                  fit: BoxFit.cover,
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child: Image.network(
+                            "https://image.tmdb.org/t/p/w500${dataResult?.posterPath}",
+                            width: 150,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Positioned(
+                          left: 125,
+                          top: 155,
+                          child: CircleAvatar(
+                              backgroundColor: Colors.white,
+                              radius: 23,
+                              child: CircleAvatar(
+                                backgroundColor: Colors.red[900],
+                                radius: 19,
+                                child: Text(
+                                  dataResult.voteAverage.toString(),
+                                  style: TextStyle(color: Colors.white),
                                 ),
-                              ),
-                              const SizedBox(
-                                width: 20,
+                              )),
+                        )
+                      ],
+                    ),
+                    const SizedBox(
+                      width: 20,
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            dataResult?.title ?? "",
+                            style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: GoogleFonts.lato().fontFamily),
+                          ),
+                          SizedBox(
+                            height: 5,
+                          ),
+                          Row(
+                            children: [
+                              Icon(Icons.movie_creation_outlined),
+                              SizedBox(
+                                width: 5,
                               ),
                               Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      dataResult?.title ?? "",
-                                      style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                          fontFamily:
-                                              GoogleFonts.lato().fontFamily),
-                                    ),
-                                    SizedBox(
-                                      height: 5,
-                                    ),
-                                    Row(
-                                      children: [
-                                        Icon(Icons.movie_creation_outlined),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        Expanded(
-                                          child: Text(
-                                            dataResult?.genreIds
-                                                    ?.map((e) =>
-                                                        getGenreString(e))
-                                                    .join(",") ??
-                                                "",
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                fontFamily: GoogleFonts.lato()
-                                                    .fontFamily),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(
-                                      height: 5,
-                                    ),
-                                    Card(
-                                      color: Colors.red[900],
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20.0)),
-                                      child: Container(
-                                        padding: EdgeInsets.all(8),
-                                        child: Text(
-                                          dataResult?.releaseDate ?? "",
-                                          style: TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.white,
-                                              fontFamily: GoogleFonts.lato()
-                                                  .fontFamily),
-                                        ),
-                                      ),
-                                    )
-                                  ],
+                                child: Text(
+                                  dataResult?.genreIds
+                                          ?.map((e) => getGenreString(e))
+                                          .join(",") ??
+                                      "",
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontFamily:
+                                          GoogleFonts.lato().fontFamily),
                                 ),
                               ),
                             ],
-                          )),
-                    );
-                  });
-            } else {
-              // return TextField(decoration: InputDecoration(hintText: 'username',hint),)
-              return const Center(child: CircularProgressIndicator());
-            }
-          },
-        ));
+                          ),
+                          SizedBox(
+                            height: 5,
+                          ),
+                          Card(
+                            color: Colors.red[900],
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20.0)),
+                            child: Container(
+                              padding: EdgeInsets.fromLTRB(12, 4, 12, 4),
+                              child: Text(
+                                DateTime.parse(dataResult?.releaseDate ?? "")
+                                    .year
+                                    .toString(),
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                    fontFamily: GoogleFonts.lato().fontFamily),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                )),
+          );
+        },
+      ),
+    ));
   }
 
   String getGenreString(int id) {

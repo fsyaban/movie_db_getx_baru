@@ -13,9 +13,9 @@ class GenreView extends GetView<GenreController> {
   Widget build(BuildContext context) {
     return Scaffold(
         floatingActionButton: Obx(() => Visibility(
-          visible: controller.selectedGenres.isNotEmpty,
-          child: FloatingActionButton(
-            child: Icon(Icons.check),
+              visible: controller.selectedGenres.isNotEmpty,
+              child: FloatingActionButton(
+                child: Icon(Icons.check),
                 onPressed: () {
                   Get.toNamed(Routes.DISCOVER,
                       arguments: controller.selectedGenres
@@ -23,19 +23,17 @@ class GenreView extends GetView<GenreController> {
                           .toList());
                 },
               ),
-        )),
-        appBar: AppBar(
-          title: const Text('GenreView'),
-          centerTitle: true,
-        ),
+            )),
+        appBar: GenreAppBar(),
         body: FutureBuilder<GenreResponse?>(
           future: controller.getGenre(),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               return ListView.builder(
+                controller: ScrollController(),
                   shrinkWrap: true,
                   padding: EdgeInsets.all(10),
-                  itemCount: snapshot.data?.genres?.length,
+                  itemCount: snapshot.data?.genres.length,
                   itemBuilder: (context, index) {
                     return Container(
                       margin: EdgeInsets.only(top: 10),
@@ -47,24 +45,29 @@ class GenreView extends GetView<GenreController> {
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10.0)),
                             child: ListTile(
-                                onTap: () {
+                                onLongPress: () {
                                   Genres? genre = snapshot.data?.genres[index];
                                   if (genre != null) {
-                                    if (controller.selectedGenres
-                                        .contains(genre)) {
-                                      controller.selectedGenres.remove(genre);
-                                    } else {
-                                      controller.selectedGenres.add(genre);
+                                    toggleGenre(genre);
+                                  }
+                                },
+                                onTap: () {
+                                  if (controller.selectedGenres.isEmpty) {
+                                    Get.toNamed(Routes.DISCOVER,
+                                        arguments: List<int>.of([
+                                          snapshot.data?.genres[index].id ?? 0
+                                        ]));
+                                  } else {
+                                    Genres? genre =
+                                        snapshot.data?.genres[index];
+                                    if (genre != null) {
+                                      toggleGenre(genre);
                                     }
                                   }
-                                  print(controller.selectedGenres
-                                      .map((element) => element.name)
-                                      .toString());
                                 },
-                                title: Text(
-                                    snapshot.data?.genres?[index].name ??
-                                        " KOSHOOONGGG"),
-                                subtitle: Text(snapshot.data?.genres?[index].id
+                                title: Text(snapshot.data?.genres[index].name ??
+                                    ""),
+                                subtitle: Text(snapshot.data?.genres[index].id
                                         .toString() ??
                                     "01")),
                           )),
@@ -76,4 +79,36 @@ class GenreView extends GetView<GenreController> {
           },
         ));
   }
+
+  void toggleGenre(Genres genre) {
+    if (controller.selectedGenres.contains(genre)) {
+      controller.selectedGenres.remove(genre);
+    } else {
+      controller.selectedGenres.add(genre);
+    }
+  }
+}
+
+class GenreAppBar extends StatelessWidget implements PreferredSizeWidget {
+  GenreAppBar({super.key});
+  GenreController controller = Get.find();
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() => AppBar(
+          title: controller.selectedGenres.isEmpty
+              ? Text("Select Genre")
+              : Text('${controller.selectedGenres.length} Selected'),
+          leading: controller.selectedGenres.isNotEmpty
+              ? ElevatedButton(
+                  onPressed: () {
+                    controller.selectedGenres.clear();
+                  },
+                  child: Icon(Icons.close))
+              : null,
+        ));
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(55.0);
 }
